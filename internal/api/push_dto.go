@@ -1,7 +1,7 @@
 package api
 
 type PushSubscriptionRequest struct {
-	Endpoint string `json:"endpoint"`
+	Endpoint string               `json:"endpoint"`
 	Keys     PushSubscriptionKeys `json:"keys"`
 }
 

@@ -9,10 +9,10 @@ import (
 
 // Handler exposes health and metrics HTTP endpoints for deployment.
 type Handler struct {
-	db        *sql.DB
-	metrics   *Metrics
-	mu        sync.RWMutex
-	ready     bool
+	db      *sql.DB
+	metrics *Metrics
+	mu      sync.RWMutex
+	ready   bool
 }
 
 func NewHandler(db *sql.DB, metrics *Metrics) *Handler {
@@ -44,5 +44,5 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) metricsHTTP(w http.ResponseWriter, status int, payload map[string]string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_, _ = fmt.Fprintf(w, `{"status":"%s"}` , payload["status"])
+	_, _ = fmt.Fprintf(w, `{"status":"%s"}`, payload["status"])
 }
