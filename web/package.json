@@ -7,7 +7,7 @@
     "dev": "npm run generate:api && vite",
     "build": "npm run generate:api && tsc -b && vite build",
     "preview": "vite preview",
-    "generate:api": "openapi-typescript ./internal/api/openapi.json --output src/api/generated/schema.ts",
+    "generate:api": "node ./scripts/generate-api.mjs",
     "lint": "tsc -b --pretty false",
     "test": "vitest run",
     "format": "prettier --write ."
