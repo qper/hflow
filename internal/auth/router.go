@@ -15,19 +15,20 @@ func NewRouter(db *sql.DB, accessSecret, refreshSecret string) Router {
 }
 
 func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodPost && req.URL.Path == "/auth/register" {
+	path := req.URL.Path
+	if req.Method == http.MethodPost && (path == "/auth/register" || path == "/api/v1/auth/register") {
 		r.handler.Register(w, req)
 		return
 	}
-	if req.Method == http.MethodPost && req.URL.Path == "/auth/login" {
+	if req.Method == http.MethodPost && (path == "/auth/login" || path == "/api/v1/auth/login") {
 		r.handler.Login(w, req)
 		return
 	}
-	if req.Method == http.MethodPost && req.URL.Path == "/auth/refresh" {
+	if req.Method == http.MethodPost && (path == "/auth/refresh" || path == "/api/v1/auth/refresh") {
 		r.handler.Refresh(w, req)
 		return
 	}
-	if req.Method == http.MethodPost && req.URL.Path == "/auth/logout" {
+	if req.Method == http.MethodPost && (path == "/auth/logout" || path == "/api/v1/auth/logout") {
 		r.handler.Logout(w, req)
 		return
 	}
