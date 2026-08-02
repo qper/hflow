@@ -3,6 +3,7 @@ WORKDIR /src
 COPY web/package*.json ./
 RUN npm ci
 COPY web/ ./
+COPY internal/api/openapi.json /src/internal/api/openapi.json
 RUN npm run build
 
 FROM nginx:1.27-alpine
