@@ -28,7 +28,7 @@ apiClient.use({
     const normalizedPath = resolveApiUrl(url.pathname);
     if (normalizedPath !== url.pathname) {
       url.pathname = normalizedPath;
-      request = new Request(url, request);
+      request = new Request(url.toString(), request);
     }
 
     const { accessToken } = useAuthStore.getState();
