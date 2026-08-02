@@ -42,8 +42,10 @@ func newAppHandler() http.Handler {
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
-	if err := conn.Ping(); err != nil {
-		log.Fatalf("ping db: %v", err)
+	if os.Getenv("HABITFLOW_SKIP_DB_CHECK") != "1" {
+		if err := conn.Ping(); err != nil {
+			log.Fatalf("ping db: %v", err)
+		}
 	}
 
 	repo := habit.NewPostgresRepository(conn)

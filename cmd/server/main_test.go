@@ -7,6 +7,7 @@ import (
 )
 
 func TestHealthzAndMetricsEndpoints(t *testing.T) {
+	t.Setenv("HABITFLOW_SKIP_DB_CHECK", "1")
 	handler := newAppHandler()
 
 	t.Run("healthz", func(t *testing.T) {
