@@ -25,6 +25,7 @@ type Habit struct {
 	Description string
 	HabitType   string
 	Frequency   string
+	Schedule    HabitSchedule
 	TargetValue *float64
 	Unit        string
 	Color       string
