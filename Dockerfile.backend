@@ -9,7 +9,7 @@ RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags='-s -w' -o /out/server ./cmd/server
 
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates bash
 WORKDIR /app
 COPY --from=build /out/server /app/server
 COPY --from=build /go/bin/migrate /usr/local/bin/migrate
@@ -18,4 +18,4 @@ COPY --from=build /src/migrations /app/migrations
 RUN chmod +x /app/server /app/migrate.sh /usr/local/bin/migrate
 EXPOSE 8080
 ENV PORT=8080
-ENTRYPOINT ["/app/server"]
+CMD ["/app/server"]
