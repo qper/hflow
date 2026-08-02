@@ -6,57 +6,55 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qper/hflow/internal/api"
-	"github.com/qper/hflow/internal/auth"
 	"github.com/qper/hflow/internal/db"
 	"github.com/qper/hflow/internal/habit"
-	"github.com/qper/hflow/internal/server"
 )
 
 func main() {
+	handler := newAppHandler()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
+	log.Printf("listening on :%s", port)
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
+		log.Fatalf("server error: %v", err)
+	}
+}
 
+func newAppHandler() http.Handler {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		dsn = "postgres://postgres:postgres@localhost:5432/habitflow?sslmode=disable"
 	}
-	accessSecret := os.Getenv("ACCESS_TOKEN_SECRET")
+	accessSecret := os.Getenv("ACCESS_SECRET")
 	if accessSecret == "" {
 		accessSecret = "dev-access-secret"
 	}
-	refreshSecret := os.Getenv("REFRESH_TOKEN_SECRET")
+	refreshSecret := os.Getenv("REFRESH_SECRET")
 	if refreshSecret == "" {
 		refreshSecret = "dev-refresh-secret"
 	}
 
 	conn, err := db.Open(dsn)
 	if err != nil {
-		log.Fatalf("open database: %v", err)
+		log.Fatalf("open db: %v", err)
 	}
-	defer conn.Close()
-
 	if err := conn.Ping(); err != nil {
-		log.Printf("database preview check failed: %v", err)
+		log.Fatalf("ping db: %v", err)
 	}
 
 	repo := habit.NewPostgresRepository(conn)
 	svc := habit.NewService(repo, repo, repo)
-	metrics := server.NewMetrics()
-	baseHandler := server.NewHandler(conn, metrics)
-	_ = auth.NewRouter(conn, accessSecret, refreshSecret)
 	apiRouter := api.NewRouter(conn, accessSecret, refreshSecret, svc)
 	mux := http.NewServeMux()
-	mux.Handle("/healthz", baseHandler)
-	mux.Handle("/readyz", baseHandler)
-	mux.Handle("/metrics", baseHandler)
-	mux.Handle("/api/", http.StripPrefix("/api", apiRouter))
-	mux.Handle("/", baseHandler)
-
-	log.Printf("listening on :%s", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), mux); err != nil {
-		log.Fatalf("listen and serve: %v", err)
-	}
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = fmt.Fprint(w, "ok")
+	})
+	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/", apiRouter)
+	return mux
 }
