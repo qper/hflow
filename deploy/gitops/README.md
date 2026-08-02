@@ -5,6 +5,6 @@ This repository keeps deployment manifests in [deploy/helm/habitflow](../helm/ha
 Recommended flow:
 1. CI builds and publishes multi-arch images to GHCR.
 2. CI updates the image tag in the Helm values file.
-3. Argo CD (or Flux) syncs the repository into the K3s cluster.
+3. Argo CD syncs the repository into the K3s cluster.
 
-For a self-hosted K3s cluster, Argo CD is a pragmatic choice because it supports Helm-based apps and pull-based reconciliation without requiring a managed control plane.
+For a self-hosted K3s cluster, Argo CD is a pragmatic choice because it supports Helm-based apps and pull-based reconciliation without requiring a managed control plane. Akeyless integration is represented as an ExternalSecret resource that expects an External Secrets Operator and a SecretStore already installed in the cluster; the repo does not embed secrets in Git.

@@ -64,6 +64,7 @@ secrets:
     enabled: false
     kind: ExternalSecret
     provider: akeyless
+    secretStoreName: akeyless
     secretPath: "habitflow/default"
 
 imagePullSecrets: []
