@@ -4,12 +4,33 @@ import { useAuthStore } from '../stores/authStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
+export function resolveApiUrl(path: string, baseUrl = API_BASE_URL) {
+  const doubledPrefix = `${baseUrl}${baseUrl}`;
+  if (path.startsWith(doubledPrefix)) {
+    return path.replace(doubledPrefix, baseUrl);
+  }
+  if (path.startsWith(baseUrl)) {
+    return path;
+  }
+  if (path.startsWith('/')) {
+    return `${baseUrl}${path}`;
+  }
+  return `${baseUrl}/${path}`;
+}
+
 export const apiClient = createClient<paths>({
   baseUrl: API_BASE_URL,
 });
 
 apiClient.use({
   async onRequest({ request }) {
+    const url = new URL(request.url);
+    const normalizedPath = resolveApiUrl(url.pathname);
+    if (normalizedPath !== url.pathname) {
+      url.pathname = normalizedPath;
+      request = new Request(url, request);
+    }
+
     const { accessToken } = useAuthStore.getState();
     if (accessToken) {
       request.headers.set('Authorization', `Bearer ${accessToken}`);
@@ -29,7 +50,7 @@ apiClient.use({
       return response;
     }
 
-    const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    const refreshResponse = await fetch(resolveApiUrl('/auth/refresh'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh_token: refreshToken }),
