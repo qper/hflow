@@ -223,6 +223,26 @@
           }
         }
       }
+    },
+    "/api/v1/push/subscriptions": {
+      "post": {
+        "summary": "Store a push subscription",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscriptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subscription stored"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -309,6 +329,21 @@
           "note": { "type": "string" },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PushSubscriptionRequest": {
+        "type": "object",
+        "required": ["endpoint", "keys"],
+        "properties": {
+          "endpoint": { "type": "string" },
+          "keys": {
+            "type": "object",
+            "required": ["p256dh", "auth"],
+            "properties": {
+              "p256dh": { "type": "string" },
+              "auth": { "type": "string" }
+            }
+          }
         }
       }
     }

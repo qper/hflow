@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { applyOptimisticCheckIn, type HabitSummary } from '../lib/habitState';
+import { enqueueMutation, loadQueuedMutations, removeQueuedMutation, type QueuedMutation } from '../lib/offlineQueue';
 
 interface HabitDraft {
   id?: string;
@@ -18,6 +19,7 @@ type HabitsState = {
   loading: boolean;
   error: string | null;
   draft: HabitDraft;
+  queuedMutations: QueuedMutation[];
   setDraft: (draft: HabitDraft) => void;
   refreshHabits: () => Promise<void>;
   createHabit: (input: HabitDraft) => Promise<void>;
@@ -40,6 +42,7 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   loading: false,
   error: null,
   draft: emptyDraft,
+  queuedMutations: loadQueuedMutations(),
   setDraft: (draft) => set({ draft }),
   refreshHabits: async () => {
     set({ loading: true, error: null });
@@ -98,17 +101,33 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
     if (!habit) return;
     const optimistic = applyOptimisticCheckIn(habit, !habit.completedToday);
     set((state) => ({ habits: state.habits.map((item) => (item.id === id ? optimistic : item)) }));
+    const payload = { date: new Date().toISOString().slice(0, 10), value: 1, note: 'checked in' };
+    const mutation: QueuedMutation = {
+      id: `${id}-${Date.now()}`,
+      type: 'check-in',
+      habitId: id,
+      payload,
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+    };
+    enqueueMutation(mutation);
+    set({ queuedMutations: loadQueuedMutations() });
+    if (!navigator.onLine) {
+      return;
+    }
     const response = await fetch('/api/v1/entries', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${localStorage.getItem('habitflow-auth') ?? ''}`,
       },
-      body: JSON.stringify({ date: new Date().toISOString().slice(0, 10), value: 1, note: 'checked in' }),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) {
       set((state) => ({ habits: state.habits.map((item) => (item.id === id ? habit : item)) }));
       throw new Error('Unable to record check-in');
     }
+    removeQueuedMutation(mutation.id);
+    set({ queuedMutations: loadQueuedMutations() });
   },
 }));

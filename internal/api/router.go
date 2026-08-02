@@ -37,6 +37,10 @@ func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.authRouter.ServeHTTP(w, req)
 		return
 	}
+	if req.URL.Path == "/api/v1/push/subscriptions" && req.Method == http.MethodPost {
+		r.handlers.savePushSubscription(w, req)
+		return
+	}
 	if strings.HasPrefix(req.URL.Path, "/api/v1/habits") || strings.HasPrefix(req.URL.Path, "/api/v1/entries") {
 		if req.URL.Path == "/api/v1/habits" && req.Method == http.MethodGet {
 			r.handlers.listHabits(w, req)
