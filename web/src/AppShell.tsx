@@ -12,6 +12,7 @@ export default function AppShell() {
         </Link>
         <nav className="nav">
           <Link to="/app">Dashboard</Link>
+          <Link to="/stats">Stats</Link>
           {!isAuthenticated ? (
             <>
               <Link to="/login">Login</Link>
